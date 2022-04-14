@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr">
+  <head>
+
+    <meta charset="utf-8">
+    <title>Tabuleiro domino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+  <body>
+
+    <canvas id="canvasTabuleiro" width="500" height="500" style="border: 1px solid #000">
+      <h3>Navegador não possui suporte ao canvas</h3>
+      <!-- Executa apenas se browser nao tiver suporte à tag canvas -->
+    </canvas>
+
+    <script type="text/javascript">
+      let tabuleiro = document.getElementById("canvasTabuleiro")
+      let ctx = tabuleiro.getContext("2d")
+      let dx=2
+      let dy=0
+      let px=0
+      let py=0
+      let anima
+      let l_ret=a_ret=50
+      let l_canvas=a_canvas=500
+
+      function desenha(){
+        ctx.clearRect(0,0,l_canvas,a_canvas)
+
+        ctx.fillStyle="#00f"
+        ctx.fillRect(px,py,l_ret,a_ret)
+
+        px+=dx
+        py+=dy
+
+        if(px<=0 && py<=0){
+          dx=2
+          dy=0
+        }
+        if((px+l_ret>=l_canvas) && (py<=0)){
+          dx=0
+          dy=2
+        }
+        if((px+l_ret>=l_canvas) && (py+a_ret>=a_canvas)){
+          dx=-2
+          dy=0
+        }
+        if((px<=0) && (py+a_ret>=a_canvas)){
+          dx=0
+          dy=-2
+        }
+
+        anima = requestAnimationFrame(desenha)
+      }
+
+      desenha()
+    </script>
+
+  </body>
+</html>

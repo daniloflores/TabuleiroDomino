@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Tabuleiro domino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+  <body>
+
+    <canvas id="canvasTabuleiro" width="500" height="500" style="border: 1px solid #000">
+      <h3>Navegador não possui suporte ao canvas</h3>
+      <!-- Executa apenas se browser nao tiver suporte à tag canvas -->
+    </canvas>
+
+    <script type="text/javascript">
+      let tabuleiro = document.getElementById("canvasTabuleiro")
+      let ctx = tabuleiro.getContext("2d")
+
+      let l_tabuleiro = tabuleiro.width
+      let a_tabuleiro = tabuleiro.height
+      let centro_x = l_tabuleiro/2
+      let centro_y = a_tabuleiro/2
+      let l_peca_original = 100
+      let a_peca_original = 198
+      let reduc = 3
+
+      class Peca0 {
+        constructor(){
+          this.larg = l_peca_original/reduc
+          this.alt = a_peca_original/reduc
+          this.x = centro_x - this.larg/2
+          this.y = centro_y - this.alt/2
+        }
+      }
+
+      class PecaN {
+        constructor(pecaAnterior){
+          this.larg = l_peca_original/reduc
+          this.alt = a_peca_original/reduc
+          this.x = pecaAnterior.x
+          this.y = pecaAnterior.y+this.alt
+        }
+      }
+
+      function printPeca(pecaObj,path){
+        let peca = new Image()
+        peca.src = path
+        peca.addEventListener("load",()=>{
+          ctx.drawImage(peca,pecaObj.x,pecaObj.y,pecaObj.larg,pecaObj.alt)
+        })
+      }
+
+      let peca1 = new Peca0
+      let peca2 = new PecaN(peca1)
+      let peca3 = new PecaN(peca2)
+
+      printPeca(peca1,"Imagens/Peças_teste/6_6.png")
+      printPeca(peca2,"Imagens/Peças_teste/6_5.png")
+      printPeca(peca3,"Imagens/Peças_teste/5_0.png")
+
+
+    </script>
+
+  </body>
+</html>
