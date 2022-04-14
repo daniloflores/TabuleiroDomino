@@ -7,10 +7,16 @@
   </head>
   <body>
 
-    <canvas id="canvasTabuleiro" width="500" height="500" style="border: 1px solid #000">
+    <canvas id="canvasTabuleiro" width="800" height="500" style="border: 1px solid #000">
       <h3>Navegador não possui suporte ao canvas</h3>
       <!-- Executa apenas se browser nao tiver suporte à tag canvas -->
     </canvas>
+
+    <p>"Digite o numero da peça ex: 66"</p>
+    <input type="text" id="pecaJogador" value="">
+    <p>"Digite a ponta (1 ou 2)"</p>
+    <input type="text" id="pontaJogador" value="">
+    <button onclick=atualizaTabuleiro()>Adicionar peça</button>
 
     <script type="text/javascript">
       let tabuleiro = document.getElementById("canvasTabuleiro")
@@ -20,29 +26,115 @@
       let a_tabuleiro = tabuleiro.height
       let centro_x = l_tabuleiro/2
       let centro_y = a_tabuleiro/2
-      let l_peca_original = 100
-      let a_peca_original = 198
+      let l_peca_original = 198
+      let a_peca_original = 100
       let reduc = 3
 
-      class Peca0 {
-        constructor(){
+      var imagensPecas = {
+        "66": "Imagens/Peças_teste/6_6.png",
+        "65": "Imagens/Peças_teste/6_5.png",
+        "64": "Imagens/Peças_teste/6_4.png",
+        "63": "Imagens/Peças_teste/6_3.png",
+        "62": "Imagens/Peças_teste/6_2.png",
+        "61": "Imagens/Peças_teste/6_1.png",
+        "60": "Imagens/Peças_teste/6_0.png",
+        "55": "Imagens/Peças_teste/5_5.png",
+        "54": "Imagens/Peças_teste/5_4.png",
+        "53": "Imagens/Peças_teste/5_3.png",
+        "52": "Imagens/Peças_teste/5_2.png",
+        "51": "Imagens/Peças_teste/5_1.png",
+        "50": "Imagens/Peças_teste/5_0.png",
+        "44": "Imagens/Peças_teste/4_4.png",
+        "43": "Imagens/Peças_teste/4_3.png",
+        "42": "Imagens/Peças_teste/4_2.png",
+        "41": "Imagens/Peças_teste/4_1.png",
+        "40": "Imagens/Peças_teste/4_0.png",
+        "33": "Imagens/Peças_teste/3_3.png",
+        "32": "Imagens/Peças_teste/3_2.png",
+        "31": "Imagens/Peças_teste/3_1.png",
+        "30": "Imagens/Peças_teste/3_0.png",
+        "22": "Imagens/Peças_teste/2_2.png",
+        "21": "Imagens/Peças_teste/2_1.png",
+        "20": "Imagens/Peças_teste/2_0.png",
+        "11": "Imagens/Peças_teste/1_1.png",
+        "10": "Imagens/Peças_teste/1_0.png",
+        "00": "Imagens/Peças_teste/0_0.png"
+      }
+
+      class CadeiaDePecas {
+        constructor(ponta1 = null, ponta2 = null, tamanho=0){
+          this.ponta1 = ponta1
+          this.ponta2 = ponta2
+          this.tamanho = tamanho
+        }
+
+        AdicionaPonta1(numero){
+          let novaPeca = new Peca(numero)
+          novaPeca.lado2 = this.ponta1
+          this.ponta1 = novaPeca
+
+          if (this.tamanho == 0){
+            this.ponta2 = this.ponta1
+            novaPeca.x = centro_x - novaPeca.larg/2
+            novaPeca.y = centro_y - novaPeca.alt/2
+          } else {
+            this.ponta1.lado2.lado1 = this.ponta1
+            novaPeca.x = novaPeca.lado2.x - novaPeca.larg
+            novaPeca.y = novaPeca.lado2.y
+          }
+          this.tamanho++
+        }
+
+        AdicionaPonta2(numero,ponta=2){
+          let novaPeca = new Peca(numero)
+          novaPeca.lado1 = this.ponta2
+
+          if (this.tamanho == 0){
+            this.ponta1 = novaPeca
+            novaPeca.x = centro_x - novaPeca.larg/2
+            novaPeca.y = centro_y - novaPeca.alt/2
+          } else {
+            this.ponta2.lado2 = novaPeca
+            novaPeca.x = novaPeca.lado1.x + novaPeca.larg
+            novaPeca.y = novaPeca.lado1.y
+          }
+
+          this.ponta2 = novaPeca
+
+          this.tamanho++
+        }
+
+        MostrarCadeia(){
+          if (this.ponta1){
+            let pecaAtual = this.ponta1
+            for(let i = 0; i<this.tamanho; i++){
+              mostraPeca(pecaAtual,imagensPecas[pecaAtual.numero])
+              pecaAtual = pecaAtual.lado2
+            }
+          } else {
+            alert("Cadeia vazia")
+          }
+        }
+
+      }
+
+      class Peca {
+        constructor(numero,lado1=null,lado2=null){
+
+          this.numero = numero
+          this.lado1 = lado1
+          this.lado2 = lado2
+
           this.larg = l_peca_original/reduc
           this.alt = a_peca_original/reduc
-          this.x = centro_x - this.larg/2
-          this.y = centro_y - this.alt/2
+
+          this.x = 0
+          this.y = 0
+
         }
       }
 
-      class PecaN {
-        constructor(pecaAnterior){
-          this.larg = l_peca_original/reduc
-          this.alt = a_peca_original/reduc
-          this.x = pecaAnterior.x
-          this.y = pecaAnterior.y+this.alt
-        }
-      }
-
-      function printPeca(pecaObj,path){
+      function mostraPeca(pecaObj,path){
         let peca = new Image()
         peca.src = path
         peca.addEventListener("load",()=>{
@@ -50,14 +142,26 @@
         })
       }
 
-      let peca1 = new Peca0
-      let peca2 = new PecaN(peca1)
-      let peca3 = new PecaN(peca2)
+      let cadeiaPecas = new CadeiaDePecas()
+      cadeiaPecas.AdicionaPonta1(numero="66")
+      cadeiaPecas.MostrarCadeia()
 
-      printPeca(peca1,"Imagens/Peças_teste/6_6.png")
-      printPeca(peca2,"Imagens/Peças_teste/6_5.png")
-      printPeca(peca3,"Imagens/Peças_teste/5_0.png")
+      function atualizaTabuleiro(){
 
+        var numeroEscolhido = document.getElementById("pecaJogador").value
+        var pontaEscolhida = document.getElementById("pontaJogador").value
+
+        ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
+
+        if(pontaEscolhida==1){
+          cadeiaPecas.AdicionaPonta1(numeroEscolhido)
+        } else if (pontaEscolhida==2){
+          cadeiaPecas.AdicionaPonta2(numeroEscolhido)
+        }
+
+        cadeiaPecas.MostrarCadeia()
+
+      }
 
     </script>
 
