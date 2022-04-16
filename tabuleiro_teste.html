@@ -17,6 +17,7 @@
     <p>"Digite a ponta (1 ou 2)"</p>
     <input type="text" id="pontaJogador" value="">
     <button onclick=atualizaTabuleiro()>Adicionar peça</button>
+    <button onclick=zoomOut()>Zoom out</button>
 
     <script type="text/javascript">
       let tabuleiro = document.getElementById("canvasTabuleiro")
@@ -128,8 +129,8 @@
           this.larg = l_peca_original/reduc
           this.alt = a_peca_original/reduc
 
-          this.x = 0
-          this.y = 0
+          //this.x = 0
+          //this.y = 0
 
         }
       }
@@ -161,6 +162,12 @@
 
         cadeiaPecas.MostrarCadeia()
 
+      }
+
+      function zoomOut(){
+        ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
+        ctx.scale(.9,.9)
+        cadeiaPecas.MostrarCadeia()
       }
 
     </script>
