@@ -84,7 +84,21 @@
 
           this.arrayPecas.unshift(novaPeca)
 
-          novaPeca.x = pecaAnterior.x - novaPeca.larg
+          let larg_anterior = 0
+          let nova_larg = 0
+
+          if(pecaAnterior.posicao=="vertical"){
+            larg_anterior = pecaAnterior.alt
+            nova_larg = novaPeca.larg
+          } else if(novaPeca.posicao=="vertical"){
+            larg_anterior = pecaAnterior.larg
+            nova_larg = novaPeca.alt
+          } else {
+            larg_anterior = pecaAnterior.larg
+            nova_larg = novaPeca.larg
+          }
+
+          novaPeca.x = pecaAnterior.x - larg_anterior/2 - nova_larg/2
           novaPeca.y = pecaAnterior.y
 
           this.tamanho = this.arrayPecas.length
@@ -96,7 +110,21 @@
 
           this.arrayPecas.push(novaPeca)
 
-          novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
+          let larg_anterior = 0
+          let nova_larg = 0
+
+          if(pecaAnterior.posicao=="vertical"){
+            larg_anterior = pecaAnterior.alt
+            nova_larg = novaPeca.larg
+          } else if (novaPeca.posicao=="vertical"){
+            larg_anterior = pecaAnterior.larg
+            nova_larg = novaPeca.alt
+          } else {
+            larg_anterior = pecaAnterior.larg
+            nova_larg = novaPeca.larg
+          }
+
+          novaPeca.x = pecaAnterior.x + larg_anterior/2 + nova_larg/2
           novaPeca.y = pecaAnterior.y
 
           this.tamanho = this.arrayPecas.length
@@ -152,16 +180,24 @@
           let img_x = pecaObj.x
           let img_y = pecaObj.y
 
-          ctx.save()
-
-          if(pecaObj.posicao == "vertical"){
-            ctx.translate(centro_x,centro_y)
-            ctx.rotate(Math.PI/2)
-            ctx.translate(-centro_x,-centro_y)
-          }
-
           peca.addEventListener("load",()=>{
-            ctx.drawImage(peca,img_x,img_y,pecaObj.larg,pecaObj.alt)
+
+            ctx.save()
+
+            if(pecaObj.posicao == "vertical"){
+              ctx.translate(img_x,img_y)
+              ctx.rotate(Math.PI/2)
+              ctx.drawImage(peca,
+                -pecaObj.larg/4,-pecaObj.alt*1.5,
+                pecaObj.larg,pecaObj.alt)
+              ctx.translate(-img_x,-img_y)
+            }
+            else{
+              ctx.drawImage(peca,
+                img_x,img_y,
+                pecaObj.larg,pecaObj.alt)
+            }
+
             ctx.restore()
             mostrarPecas(arrayPecas,tamanho,i+1)
             //Funcao recursiva garante que cada peca soh eh carregada
@@ -170,8 +206,6 @@
         }
 
       }
-
-
 
       let cadeiaPecas = new CadeiaDePecas()
       cadeiaPecas.PrimeiraPeca(numero="66")
