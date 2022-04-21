@@ -16,12 +16,12 @@
     <input type="text" id="pecaJogador" value="">
     <p>"Digite a ponta (1 ou 2)"</p>
     <input type="text" id="pontaJogador" value="">
-    <button onclick=atualizaTabuleiro()>Adicionar peça</button>
+    <button onclick=atualizaTabuleiro()>Adicionar peca</button>
     <button onclick=zoomOut()>Zoom out</button>
 
     <script type="text/javascript">
-      let tabuleiro = document.getElementById("canvasTabuleiro")
-      let ctx = tabuleiro.getContext("2d")
+      const tabuleiro = document.getElementById("canvasTabuleiro")
+      const ctx = tabuleiro.getContext("2d")
 
       let l_tabuleiro = tabuleiro.width
       let a_tabuleiro = tabuleiro.height
@@ -70,40 +70,41 @@
           this.tamanho = 0
         }
 
-        AdicionaPonta1(numero){
+        PrimeiraPeca(numero){
           let novaPeca = new Peca(numero)
-          this.arrayPecas.unshift(novaPeca)
-
-          if (this.tamanho == 0){
-            novaPeca.x = centro_x - novaPeca.larg/2
-            novaPeca.y = centro_y - novaPeca.alt/2
-          } else {
-            novaPeca.x = this.arrayPecas[1].x - novaPeca.larg
-            novaPeca.y = this.arrayPecas[1].y
-          }
+          this.arrayPecas.push(novaPeca)
+          novaPeca.x = centro_x - novaPeca.larg/2
+          novaPeca.y = centro_y - novaPeca.alt/2
           this.tamanho = this.arrayPecas.length
         }
 
-        AdicionaPonta2(numero,ponta=2){
+        AdicionaPonta1(numero){
           let novaPeca = new Peca(numero)
+          let pecaAnterior = this.arrayPecas[0]
+
+          this.arrayPecas.unshift(novaPeca)
+
+          novaPeca.x = pecaAnterior.x - novaPeca.larg
+          novaPeca.y = pecaAnterior.y
+
+          this.tamanho = this.arrayPecas.length
+        }
+
+        AdicionaPonta2(numero){
+          let novaPeca = new Peca(numero)
+          let pecaAnterior = this.arrayPecas[this.tamanho-1]
+
           this.arrayPecas.push(novaPeca)
 
-          if (this.tamanho == 0){
-            novaPeca.x = centro_x - novaPeca.larg/2
-            novaPeca.y = centro_y - novaPeca.alt/2
-          } else {
-            novaPeca.x = this.arrayPecas[this.tamanho-1].x + novaPeca.larg
-            novaPeca.y = this.arrayPecas[this.tamanho-1].y
-          }
+          novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
+          novaPeca.y = pecaAnterior.y
 
           this.tamanho = this.arrayPecas.length
         }
 
         MostrarCadeia(){
           if (this.arrayPecas[0]){
-            for(let i = 0; i<this.tamanho; i++){
-              mostraPeca(this.arrayPecas[i],imagensPecas[this.arrayPecas[i].numero])
-            }
+            mostrarPecas(this.arrayPecas,this.tamanho,0)
           } else {
             alert("Cadeia vazia")
           }
@@ -112,31 +113,68 @@
       }
 
       class Peca {
-        constructor(numero,lado1=0,lado2=0){
+        constructor(numero,posicao="horizontal"){
 
           this.numero = numero
-          this.lado1 = lado1
-          this.lado2 = lado2
+          this.posicao = posicao
+          let placeholder
+
+          this.lado1 = numero.charAt(0)
+          this.lado2 = numero.charAt(1)
 
           this.larg = l_peca_original/reduc
           this.alt = a_peca_original/reduc
 
-          //this.x = 0
-          //this.y = 0
+          if(this.lado1==this.lado2){
+            this.posicao = "vertical"
+          }
+
+          //if (this.posicao=="vertical"){
+            //placeholder = this.larg
+            //this.larg = this.alt
+            //this.alt = placeholder
+          //}
+          if (this.posição=="invertida"){
+            placeholder = this.lado1
+            this.lado1 = this.lado2
+            this.lado2 = placeholder
+          }
 
         }
       }
 
-      function mostraPeca(pecaObj,path){
-        let peca = new Image()
-        peca.src = path
-        peca.addEventListener("load",()=>{
-          ctx.drawImage(peca,pecaObj.x,pecaObj.y,pecaObj.larg,pecaObj.alt)
-        })
+      function mostrarPecas(arrayPecas,tamanho,i){
+
+        if (i < tamanho){
+          let peca = new Image()
+          peca.src = imagensPecas[arrayPecas[i].numero]
+          let pecaObj = arrayPecas[i]
+          let img_x = pecaObj.x
+          let img_y = pecaObj.y
+
+          ctx.save()
+
+          if(pecaObj.posicao == "vertical"){
+            ctx.translate(centro_x,centro_y)
+            ctx.rotate(Math.PI/2)
+            ctx.translate(-centro_x,-centro_y)
+          }
+
+          peca.addEventListener("load",()=>{
+            ctx.drawImage(peca,img_x,img_y,pecaObj.larg,pecaObj.alt)
+            ctx.restore()
+            mostrarPecas(arrayPecas,tamanho,i+1)
+            //Funcao recursiva garante que cada peca soh eh carregada
+            //apos a peca anterior
+          })
+        }
+
       }
 
+
+
       let cadeiaPecas = new CadeiaDePecas()
-      cadeiaPecas.AdicionaPonta1(numero="66")
+      cadeiaPecas.PrimeiraPeca(numero="66")
       cadeiaPecas.MostrarCadeia()
 
       function atualizaTabuleiro(){
