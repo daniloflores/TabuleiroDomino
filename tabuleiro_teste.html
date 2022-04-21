@@ -22,6 +22,7 @@
     <script type="text/javascript">
       const tabuleiro = document.getElementById("canvasTabuleiro")
       const ctx = tabuleiro.getContext("2d")
+      const reduc = 3
 
       let l_tabuleiro = tabuleiro.width
       let a_tabuleiro = tabuleiro.height
@@ -29,7 +30,7 @@
       let centro_y = a_tabuleiro/2
       let l_peca_original = 198
       let a_peca_original = 100
-      let reduc = 3
+
 
       var imagensPecas = {
         "66": "Imagens/Pecas_teste/6_6.png",
@@ -72,9 +73,12 @@
 
         PrimeiraPeca(numero){
           let novaPeca = new Peca(numero)
+
           this.arrayPecas.push(novaPeca)
-          novaPeca.x = centro_x - novaPeca.larg/2
-          novaPeca.y = centro_y - novaPeca.alt/2
+
+          novaPeca.x = centro_x
+          novaPeca.y = centro_y
+
           this.tamanho = this.arrayPecas.length
         }
 
@@ -84,21 +88,7 @@
 
           this.arrayPecas.unshift(novaPeca)
 
-          let larg_anterior = 0
-          let nova_larg = 0
-
-          if(pecaAnterior.posicao=="vertical"){
-            larg_anterior = pecaAnterior.alt
-            nova_larg = novaPeca.larg
-          } else if(novaPeca.posicao=="vertical"){
-            larg_anterior = pecaAnterior.larg
-            nova_larg = novaPeca.alt
-          } else {
-            larg_anterior = pecaAnterior.larg
-            nova_larg = novaPeca.larg
-          }
-
-          novaPeca.x = pecaAnterior.x - larg_anterior/2 - nova_larg/2
+          novaPeca.x = pecaAnterior.x - pecaAnterior.larg/2 - novaPeca.larg/2
           novaPeca.y = pecaAnterior.y
 
           this.tamanho = this.arrayPecas.length
@@ -110,21 +100,7 @@
 
           this.arrayPecas.push(novaPeca)
 
-          let larg_anterior = 0
-          let nova_larg = 0
-
-          if(pecaAnterior.posicao=="vertical"){
-            larg_anterior = pecaAnterior.alt
-            nova_larg = novaPeca.larg
-          } else if (novaPeca.posicao=="vertical"){
-            larg_anterior = pecaAnterior.larg
-            nova_larg = novaPeca.alt
-          } else {
-            larg_anterior = pecaAnterior.larg
-            nova_larg = novaPeca.larg
-          }
-
-          novaPeca.x = pecaAnterior.x + larg_anterior/2 + nova_larg/2
+          novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
           novaPeca.y = pecaAnterior.y
 
           this.tamanho = this.arrayPecas.length
@@ -145,7 +121,6 @@
 
           this.numero = numero
           this.posicao = posicao
-          let placeholder
 
           this.lado1 = numero.charAt(0)
           this.lado2 = numero.charAt(1)
@@ -155,13 +130,12 @@
 
           if(this.lado1==this.lado2){
             this.posicao = "vertical"
+
+            let placeholder = this.larg
+            this.larg = this.alt
+            this.alt = placeholder
           }
 
-          //if (this.posicao=="vertical"){
-            //placeholder = this.larg
-            //this.larg = this.alt
-            //this.alt = placeholder
-          //}
           if (this.posição=="invertida"){
             placeholder = this.lado1
             this.lado1 = this.lado2
@@ -181,6 +155,9 @@
           let img_y = pecaObj.y
 
           peca.addEventListener("load",()=>{
+            //Esse event listener junto com a funcao recursividade abaixo
+            //garante que cada peca soh eh processada e mostrarda
+            //apos a peca anterior
 
             ctx.save()
 
@@ -188,20 +165,19 @@
               ctx.translate(img_x,img_y)
               ctx.rotate(Math.PI/2)
               ctx.drawImage(peca,
-                -pecaObj.larg/4,-pecaObj.alt*1.5,
-                pecaObj.larg,pecaObj.alt)
+                -pecaObj.alt/2,-pecaObj.larg/2,
+                pecaObj.alt,pecaObj.larg)
               ctx.translate(-img_x,-img_y)
-            }
-            else{
+            } else {
               ctx.drawImage(peca,
-                img_x,img_y,
+                img_x-pecaObj.larg/2,img_y-pecaObj.alt/2,
                 pecaObj.larg,pecaObj.alt)
             }
 
             ctx.restore()
             mostrarPecas(arrayPecas,tamanho,i+1)
-            //Funcao recursiva garante que cada peca soh eh carregada
-            //apos a peca anterior
+            //Funcao recursiva
+
           })
         }
 
