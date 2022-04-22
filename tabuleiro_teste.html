@@ -103,12 +103,12 @@
             novaPeca.x = pecaAnterior.x - pecaAnterior.larg/2 - novaPeca.larg/2
             novaPeca.y = pecaAnterior.y
           } else if(this.sentidoPonta1 == "curva"){
-            novaPeca.SetVertical()
+            novaPeca.Girar90graus()
             novaPeca.x = pecaAnterior.x - pecaAnterior.larg/4
             novaPeca.y = pecaAnterior.y - pecaAnterior.alt/2 - novaPeca.alt/2
             this.sentidoPonta1 = "vertical"
           } else if(this.sentidoPonta1 == "vertical"){
-            novaPeca.SetVertical()
+            novaPeca.Girar90graus()
             novaPeca.x = pecaAnterior.x
             novaPeca.y = pecaAnterior.y - pecaAnterior.alt/2 - novaPeca.alt/2
           }
@@ -122,7 +122,7 @@
           }
 
           if(this.tamanhoLado1  > 5 && this.sentidoPonta1 == "horizontal"){
-            if (novaPeca.posicao=="horizontal" && pecaAnterior.posicao=="horizontal"){
+            if (novaPeca.vertical==false && pecaAnterior.vertical==false){
               this.sentidoPonta1 = "curva"
             } else {
               zoomOut(0.9)
@@ -140,12 +140,12 @@
             novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
             novaPeca.y = pecaAnterior.y
           }else if(this.sentidoPonta2 == "curva"){
-            novaPeca.SetVertical()
+            novaPeca.Girar90graus()
             novaPeca.x = pecaAnterior.x + pecaAnterior.larg/4
             novaPeca.y = pecaAnterior.y + pecaAnterior.alt/2 + novaPeca.alt/2
             this.sentidoPonta2 = "vertical"
           } else if(this.sentidoPonta2 == "vertical"){
-            novaPeca.SetVertical()
+            novaPeca.Girar90graus()
             novaPeca.x = pecaAnterior.x
             novaPeca.y = pecaAnterior.y + pecaAnterior.alt/2 + novaPeca.alt/2
           }
@@ -159,7 +159,7 @@
           }
 
           if(this.tamanhoLado2  > 5 && this.sentidoPonta2 == "horizontal"){
-            if (novaPeca.posicao=="horizontal" && pecaAnterior.posicao=="horizontal"){
+            if (novaPeca.vertical==false && pecaAnterior.vertical==false){
               this.sentidoPonta2 = "curva"
             } else {
               zoomOut(0.9)
@@ -178,10 +178,9 @@
       }
 
       class Peca {
-        constructor(numero,posicao="horizontal"){
+        constructor(numero){
 
           this.numero = numero
-          this.posicao = posicao
           this.vertical = false
           this.invertida = false
 
@@ -192,19 +191,19 @@
           this.alt = a_peca_original/reduc
 
           if(this.lado1 == this.lado2){
-            this.posicao = "vertical"
+            this.vertical = true
             let placeholder = this.larg
             this.larg = this.alt
             this.alt = placeholder
           }
 
           if(this.lado1 < this.lado2){
-            this.posicao = "invertida"
+            this.invertida = true
           }
         }
 
-        SetVertical(){
-          this.posicao = "vertical"
+        Girar90graus(){
+          this.vertical = !this.vertical
           let placeholder = this.larg
           this.larg = this.alt
           this.alt = placeholder
@@ -221,7 +220,7 @@
           let img_y = pecaObj.y
 
           let numeroImg = ""
-          if(pecaObj.posicao == "invertida"){
+          if(pecaObj.invertida){
             numeroImg = pecaObj.numero.split("").reverse().join("")
           } else {
             numeroImg = pecaObj.numero
@@ -235,7 +234,7 @@
 
             ctx.save()
 
-            if(pecaObj.posicao == "vertical"){
+            if(pecaObj.vertical){
 
               ctx.translate(img_x,img_y)
               ctx.rotate(Math.PI/2)
@@ -244,7 +243,7 @@
                 pecaObj.alt,pecaObj.larg)
               ctx.translate(-img_x,-img_y)
 
-            } else if(pecaObj.posicao == "invertida"){
+            } else if(pecaObj.invertida){
 
               ctx.translate(img_x,img_y)
               ctx.scale(-1,1)
