@@ -75,6 +75,11 @@
           this.ponta1 = 0
           this.ponta2 = 0
           this.tamanho = 0
+          this.tamanhoLado1 = 0
+          this.tamanhoLado2 = 0
+          this.semZoom = true
+          this.sentidoPonta1 = "horizontal"
+          this.sentidoPonta2 = "horizontal"
         }
 
         PrimeiraPeca(numero){
@@ -89,27 +94,77 @@
         }
 
         AdicionaPonta1(numero){
-          let novaPeca = new Peca(numero)
-          let pecaAnterior = this.arrayPecas[0]
 
+          let pecaAnterior = this.arrayPecas[0]
+          let novaPeca = new Peca(numero)
           this.arrayPecas.unshift(novaPeca)
 
-          novaPeca.x = pecaAnterior.x - pecaAnterior.larg/2 - novaPeca.larg/2
-          novaPeca.y = pecaAnterior.y
+          if(this.sentidoPonta1 == "horizontal"){
+            novaPeca.x = pecaAnterior.x - pecaAnterior.larg/2 - novaPeca.larg/2
+            novaPeca.y = pecaAnterior.y
+          } else if(this.sentidoPonta1 == "curva"){
+            novaPeca.SetVertical()
+            novaPeca.x = pecaAnterior.x - pecaAnterior.larg/4
+            novaPeca.y = pecaAnterior.y - pecaAnterior.alt/2 - novaPeca.alt/2
+            this.sentidoPonta1 = "vertical"
+          } else if(this.sentidoPonta1 == "vertical"){
+            novaPeca.SetVertical()
+            novaPeca.x = pecaAnterior.x
+            novaPeca.y = pecaAnterior.y - pecaAnterior.alt/2 - novaPeca.alt/2
+          }
 
           this.tamanho = this.arrayPecas.length
+          this.tamanhoLado1 ++
+
+          if(cadeiaPecas.semZoom && cadeiaPecas.tamanhoLado1 > 4){
+            zoomOut()
+            cadeiaPecas.semZoom = false
+          }
+
+          if(this.tamanhoLado1  > 5 && this.sentidoPonta1 == "horizontal"){
+            if (novaPeca.posicao=="horizontal" && pecaAnterior.posicao=="horizontal"){
+              this.sentidoPonta1 = "curva"
+            } else {
+              zoomOut(0.9)
+            }
+          }
+
         }
 
         AdicionaPonta2(numero){
           let novaPeca = new Peca(numero)
           let pecaAnterior = this.arrayPecas[this.tamanho-1]
-
           this.arrayPecas.push(novaPeca)
 
-          novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
-          novaPeca.y = pecaAnterior.y
+          if(this.sentidoPonta2 == "horizontal"){
+            novaPeca.x = pecaAnterior.x + pecaAnterior.larg/2 + novaPeca.larg/2
+            novaPeca.y = pecaAnterior.y
+          }else if(this.sentidoPonta2 == "curva"){
+            novaPeca.SetVertical()
+            novaPeca.x = pecaAnterior.x + pecaAnterior.larg/4
+            novaPeca.y = pecaAnterior.y + pecaAnterior.alt/2 + novaPeca.alt/2
+            this.sentidoPonta2 = "vertical"
+          } else if(this.sentidoPonta2 == "vertical"){
+            novaPeca.SetVertical()
+            novaPeca.x = pecaAnterior.x
+            novaPeca.y = pecaAnterior.y + pecaAnterior.alt/2 + novaPeca.alt/2
+          }
 
           this.tamanho = this.arrayPecas.length
+          this.tamanhoLado2 ++
+
+          if(cadeiaPecas.semZoom && cadeiaPecas.tamanhoLado2 > 4){
+            zoomOut()
+            cadeiaPecas.semZoom = false
+          }
+
+          if(this.tamanhoLado2  > 5 && this.sentidoPonta2 == "horizontal"){
+            if (novaPeca.posicao=="horizontal" && pecaAnterior.posicao=="horizontal"){
+              this.sentidoPonta2 = "curva"
+            } else {
+              zoomOut(0.9)
+            }
+          }
         }
 
         MostrarCadeia(){
@@ -127,6 +182,8 @@
 
           this.numero = numero
           this.posicao = posicao
+          this.vertical = false
+          this.invertida = false
 
           this.lado1 = parseInt(numero.charAt(0))
           this.lado2 = parseInt(numero.charAt(1))
@@ -134,7 +191,7 @@
           this.larg = l_peca_original/reduc
           this.alt = a_peca_original/reduc
 
-          if(this.lado1==this.lado2){
+          if(this.lado1 == this.lado2){
             this.posicao = "vertical"
             let placeholder = this.larg
             this.larg = this.alt
@@ -144,8 +201,15 @@
           if(this.lado1 < this.lado2){
             this.posicao = "invertida"
           }
-
         }
+
+        SetVertical(){
+          this.posicao = "vertical"
+          let placeholder = this.larg
+          this.larg = this.alt
+          this.alt = placeholder
+        }
+
       }
 
       function mostrarPecas(arrayPecas,tamanho,i){
@@ -210,29 +274,31 @@
       function checarInput(pontaEscolhida,numeroEscolhido){
         if(pontaEscolhida!=1 && pontaEscolhida!=2){
           alert("Ponta inválida - Escolha '1' ou '2'")
-          return
+          return "erro"
         }
 
         if(!pecasValidas.includes(numeroEscolhido)){
           alert("Numero de peca invalido")
-          return
+          return "erro"
         }
       }
 
       let cadeiaPecas = new CadeiaDePecas()
-      cadeiaPecas.PrimeiraPeca(numero="66")
-      cadeiaPecas.MostrarCadeia()
 
       function atualizaTabuleiro(){
 
         var numeroEscolhido = document.getElementById("pecaJogador").value
         var pontaEscolhida = document.getElementById("pontaJogador").value
 
-        checarInput(pontaEscolhida,numeroEscolhido)
+        if(checarInput(pontaEscolhida,numeroEscolhido)=="erro"){
+          return
+        }
 
         ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
 
-        if(pontaEscolhida==1){
+        if(cadeiaPecas.tamanho==0){
+          cadeiaPecas.PrimeiraPeca(numeroEscolhido)
+        } else if(pontaEscolhida==1){
           cadeiaPecas.AdicionaPonta1(numeroEscolhido)
         } else if (pontaEscolhida==2){
           cadeiaPecas.AdicionaPonta2(numeroEscolhido)
@@ -242,13 +308,13 @@
 
       }
 
-      function zoomOut(){
+      function zoomOut(escala=.8){
         ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
 
         ctx.translate(centro_x,centro_y)
-        ctx.scale(.9,.9)
+        ctx.scale(escala,escala)
         ctx.translate(-centro_x,-centro_y)
-        
+
         cadeiaPecas.MostrarCadeia()
       }
 
