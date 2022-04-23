@@ -24,6 +24,7 @@
 
       let l_tabuleiro = tabuleiro.width
       let a_tabuleiro = tabuleiro.height
+      let escala_canvas = 1
       let centro_x = l_tabuleiro/2
       let centro_y = a_tabuleiro/2
       let l_peca_original = 198
@@ -173,7 +174,7 @@
             this.arrayPecas.push(this.novaPeca)
             this.ponta2.tamanho ++
             if(this.ponta2.sentidoVert != 0) this.novaPeca.Girar90graus()
-            if(this.ponta1.sentidoHoriz == -1) this.novaPeca.Inverter()
+            if(this.ponta2.sentidoHoriz == -1) this.novaPeca.Inverter()
           }
 
           this.tamanho = this.arrayPecas.length
@@ -281,6 +282,10 @@
           let img_y = pecaObj.y
           let numeroImg  = pecaObj.numero
           pecaImg.src = imagensPecas[numeroImg]
+          let l_imgNpCanvas
+          let a_imgNoCanvas
+          let invert
+
 
           pecaImg.addEventListener("load",()=>{
             //Esse eventlistener junto com a funcao recursiva abaixo
@@ -288,33 +293,28 @@
             //apos a peca anterior
 
             ctx.save()
+            ctx.translate(img_x,img_y)
 
             if(pecaObj.vertical){
-
-              ctx.translate(img_x,img_y)
               ctx.rotate(Math.PI/2)
-              ctx.drawImage(pecaImg,
-                -pecaObj.alt/2,-pecaObj.larg/2,
-                pecaObj.alt,pecaObj.larg)
-              ctx.translate(-img_x,-img_y)
-
-            } else if(pecaObj.invertida){
-
-              ctx.translate(img_x,img_y)
-              ctx.scale(-1,1)
-              ctx.drawImage(pecaImg,
-                +pecaObj.larg/2,-pecaObj.alt/2,
-                -pecaObj.larg,pecaObj.alt)
-              ctx.translate(-img_x,-img_y)
-
+              l_imgNpCanvas = pecaObj.alt
+              a_imgNoCanvas = pecaObj.larg
             } else {
-
-              ctx.drawImage(pecaImg,
-                img_x-pecaObj.larg/2,img_y-pecaObj.alt/2,
-                pecaObj.larg,pecaObj.alt)
-
+              l_imgNpCanvas = pecaObj.larg
+              a_imgNoCanvas = pecaObj.alt
             }
 
+            if(pecaObj.invertida) {
+              ctx.scale(-1,1)
+              invert = 1
+            } else {
+              invert = -1
+            }
+
+            ctx.drawImage(pecaImg,
+              invert*l_imgNpCanvas/2,-a_imgNoCanvas/2,
+              -invert*l_imgNpCanvas,a_imgNoCanvas)
+            ctx.translate(-img_x,-img_y)
             ctx.restore()
 
             mostrarPecas(arrayPecas,tamanho,i+1)
@@ -348,13 +348,14 @@
           return
         }
 
-        ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
+        limpaCanvas()
 
         if(cadeiaPecas.tamanho==0){
           cadeiaPecas.PrimeiraPeca(numeroEscolhido)
         } else {
           cadeiaPecas.AdicionaPeca(numeroEscolhido, pontaEscolhida)
           cadeiaPecas.AjustaCadeia()
+          limpaCanvas()
           cadeiaPecas.AtualizaCoordenadasNovaPeca(pontaEscolhida)
         }
 
@@ -364,20 +365,22 @@
 
       function zoomOut(escala=.8){
 
-        //ERRP: quando diminuimos a escala, a atualizacao do canvas nao
-        //limpa toda a tela. Falta ajustar dimensoes usadas para a limpeza
-        //let nova_largura = tabuleiro.width/
-        //let nova_altura = tabuleiro.height
-        //let sobra_largura = nova_largura - l_tabuleiro
-        //let sobra_altura = nova_altura - a_tabuleiro
-
-        ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
-
         ctx.translate(centro_x,centro_y)
         ctx.scale(escala,escala)
         ctx.translate(-centro_x,-centro_y)
+        escala_canvas /= escala
 
-        ctx.clearRect(0,0,l_tabuleiro,a_tabuleiro)
+      }
+
+      function limpaCanvas(){
+        let nova_largura = tabuleiro.width*escala_canvas
+        let nova_altura = tabuleiro.height*escala_canvas
+        let sobra_largura = nova_largura - l_tabuleiro
+        let sobra_altura = nova_altura - a_tabuleiro
+
+        ctx.translate(-sobra_largura/2,-sobra_altura/2)
+        ctx.clearRect(0,0,nova_largura,nova_altura)
+        ctx.translate(sobra_largura/2,sobra_altura/2)
       }
 
     </script>
