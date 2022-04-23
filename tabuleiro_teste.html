@@ -71,36 +71,79 @@
         constructor(){
           this.arrayPecas = []
           this.tamanho = 0
+          this.semZoom = true
           this.novaPeca
           this.pecaAnterior
-          this.ponta1 = 0
-          this.ponta2 = 0
-          this.tamanhoLado1 = 0
-          this.tamanhoLado2 = 0
-          this.semZoom = true
-          this.sentidoPonta1 = "esquerda"
-          this.sentidoPonta2 = "direita"
+
+          this.ponta1 = {
+            valor: 0,
+            tamanho: 0,
+            sentidoHoriz: -1,
+            sentidoVert: 0,
+            curva: false
+          }
+
+          this.ponta2 = {
+            valor: 0,
+            tamanho: 0,
+            sentidoHoriz: 1,
+            sentidoVert: 0,
+            curva: false
+          }
         }
 
         AjustaCadeia(){
 
-          if(cadeiaPecas.semZoom &&
-            (cadeiaPecas.tamanhoLado1 > 4 ||  cadeiaPecas.tamanhoLado2 > 4)){
+          if(this.semZoom &&
+            (this.ponta1.tamanho > 4 || this.ponta2.tamanho > 4)){
             zoomOut()
-            cadeiaPecas.semZoom = false
+            this.semZoom = false
           }
 
-          if(this.tamanhoLado1  > 5 && this.sentidoPonta1 == "esquerda"){
+          //Curva para cima se tem muitas pecas na esquerda.
+          //Se houver pecas transversais, nao curva e reduz o zoom.
+          if(this.ponta1.tamanho > 5 && this.ponta1.sentidoHoriz == -1 && this.ponta1.curva == false){
             if (this.novaPeca.vertical==false && this.pecaAnterior.vertical==false){
-              this.sentidoPonta1 = "curva para cima"
+              this.ponta1.sentidoHoriz = 0
+              this.ponta1.sentidoVert = -1
+              this.ponta1.curva = true
             } else {
               zoomOut(0.9)
             }
           }
 
-          if(this.tamanhoLado2  > 5 && this.sentidoPonta2 == "direita"){
+          //Curva para baixo se tem muitas pecas na direita
+          //Se houver pecas transversais, nao curva e reduz o zoom.
+          if(this.ponta2.tamanho  > 5 && this.ponta2.sentidoHoriz == 1 && this.ponta2.curva == false){
             if (this.novaPeca.vertical==false && this.pecaAnterior.vertical==false){
-              this.sentidoPonta2 = "curva para baixo"
+              //curva para baixo
+              this.ponta2.sentidoHoriz = 0
+              this.ponta2.sentidoVert = 1
+              this.ponta2.curva = true
+            } else {
+              zoomOut(0.9)
+            }
+          }
+
+          //Curva para direita se chegar perto do parte de cima do canvas.
+          //Se houver pecas transversais, nao curva e reduz o zoom.
+          if(this.ponta1.tamanho > 8 && this.ponta1.sentidoVert == -1 && this.ponta1.curva == false){
+            if (this.novaPeca.vertical==true && this.pecaAnterior.vertical==true){
+              this.ponta1.sentidoHoriz = 1
+              this.ponta1.sentidoVert = 0
+              this.ponta1.curva = true
+            } else {
+              zoomOut(0.9)
+            }
+          }
+
+          //Curva para esquerda se chegar perto do parte de baixo do canvas.
+          //Se houver pecas transversais, nao curva e reduz o zoom.
+          if(this.ponta2.tamanho > 8 && this.ponta2.sentidoVert == 1 && this.ponta2.curva == false){
+            if (this.novaPeca.vertical==true && this.pecaAnterior.vertical==true){
+              this.ponta2.sentidoHoriz = -1
+              this.ponta2.sentidoVert = 0
+              this.ponta2.curva = true
             } else {
               zoomOut(0.9)
             }
@@ -110,12 +153,9 @@
 
         PrimeiraPeca(numero){
           this.novaPeca = new Peca(numero)
-
           this.arrayPecas.push(this.novaPeca)
-
           this.novaPeca.x = centro_x
           this.novaPeca.y = centro_y
-
           this.tamanho = this.arrayPecas.length
         }
 
@@ -125,57 +165,65 @@
           if (ponta == 1){
             this.pecaAnterior = this.arrayPecas[0]
             this.arrayPecas.unshift(this.novaPeca)
-            this.tamanhoLado1 ++
+            this.ponta1.tamanho ++
+            if(this.ponta1.sentidoVert != 0) this.novaPeca.Girar90graus()
+            if(this.ponta1.sentidoHoriz == 1) this.novaPeca.Inverter()
           } else if (ponta == 2){
             this.pecaAnterior = this.arrayPecas[this.tamanho-1]
             this.arrayPecas.push(this.novaPeca)
-            this.tamanhoLado2 ++
+            this.ponta2.tamanho ++
+            if(this.ponta2.sentidoVert != 0) this.novaPeca.Girar90graus()
+            if(this.ponta1.sentidoHoriz == -1) this.novaPeca.Inverter()
           }
 
           this.tamanho = this.arrayPecas.length
         }
 
         AtualizaCoordenadasNovaPeca(ponta=1){
-          let sentido
+          let sentidoHoriz
+          let sentidoVert
+          let curva
           let deslocX
           let deslocY
 
           if (ponta == 1){
-            sentido = this.sentidoPonta1
+            sentidoHoriz = this.ponta1.sentidoHoriz
+            sentidoVert = this.ponta1.sentidoVert
+            curva = this.ponta1.curva
           } else if (ponta == 2){
-            sentido = this.sentidoPonta2
+            sentidoHoriz = this.ponta2.sentidoHoriz
+            sentidoVert = this.ponta2.sentidoVert
+            curva = this.ponta2.curva
           }
 
-          if(sentido == "esquerda"){
-            deslocX = -this.pecaAnterior.larg/2 -this.novaPeca.larg/2
+          if(sentidoHoriz != 0 && curva == false){    //adiciona na esquerda ou direita
+            deslocX = this.pecaAnterior.larg/2 +this.novaPeca.larg/2
             deslocY = 0
-          } else if (sentido == "cima"){
-            this.novaPeca.Girar90graus()
+          } else if(sentidoVert !=0 && curva == false){    //adiciona acima ou abaixo
             deslocX = 0
-            deslocY = -this.pecaAnterior.alt/2 -this.novaPeca.alt/2
-          } else if (sentido == "direita"){
-            deslocX = +this.pecaAnterior.larg/2 +this.novaPeca.larg/2
-            deslocY = 0
-          } else if (sentido == "baixo"){
+            deslocY = this.pecaAnterior.alt/2 +this.novaPeca.alt/2
+          } else if(sentidoVert !=0 && curva == true){   //curva para cima ou para baixo
             this.novaPeca.Girar90graus()
-            deslocX = 0
-            deslocY = +this.pecaAnterior.alt/2 +this.novaPeca.alt/2
-          } else if (sentido == "curva para cima"){
+            deslocX = this.pecaAnterior.larg/4
+            deslocY = this.pecaAnterior.alt/2 +this.novaPeca.alt/2
+            sentidoHoriz = sentidoVert
+          } else if(sentidoHoriz !=0 && curva == true){   //curva para direita ou para esquerda
             this.novaPeca.Girar90graus()
-            deslocX = -this.pecaAnterior.larg/4
-            deslocY = -this.pecaAnterior.alt/2 -this.novaPeca.alt/2
-            this.sentidoPonta1 = "cima"
-            //Falta generalizar para a ponta 2
-          } else if (sentido == "curva para baixo"){
-            this.novaPeca.Girar90graus()
-            deslocX = +this.pecaAnterior.larg/4
-            deslocY = +this.pecaAnterior.alt/2 +this.novaPeca.alt/2
-            this.sentidoPonta2 = "baixo"
-            //Falta generalizar para a ponta 1
+            this.novaPeca.Inverter()
+            deslocX = this.pecaAnterior.larg/2 + this.novaPeca.larg/2
+            deslocY = this.pecaAnterior.alt/4
+            sentidoVert = -sentidoHoriz
           }
 
-          this.novaPeca.x = this.pecaAnterior.x + deslocX
-          this.novaPeca.y = this.pecaAnterior.y + deslocY
+          this.novaPeca.x = this.pecaAnterior.x + deslocX*sentidoHoriz
+          this.novaPeca.y = this.pecaAnterior.y + deslocY*sentidoVert
+
+          if (this.ponta1.curva){
+            this.ponta1.curva = false
+          } else if(this.ponta2.curva){
+            this.ponta2.curva = false
+          }
+
         }
 
         MostrarCadeia(){
@@ -190,14 +238,11 @@
 
       class Peca {
         constructor(numero){
-
           this.numero = numero
           this.vertical = false
           this.invertida = false
-
           this.lado1 = parseInt(numero.charAt(0))
           this.lado2 = parseInt(numero.charAt(1))
-
           this.larg = l_peca_original/reduc
           this.alt = a_peca_original/reduc
 
@@ -210,6 +255,7 @@
 
           if(this.lado1 < this.lado2){
             this.invertida = true
+            this.numero = parseInt(this.numero.split("").reverse().join(""))
           }
         }
 
@@ -218,6 +264,10 @@
           let placeholder = this.larg
           this.larg = this.alt
           this.alt = placeholder
+        }
+
+        Inverter(){
+          this.invertida = !this.invertida
         }
 
       }
@@ -229,13 +279,7 @@
           let pecaObj = arrayPecas[i]
           let img_x = pecaObj.x
           let img_y = pecaObj.y
-
-          let numeroImg = ""
-          if(pecaObj.invertida){
-            numeroImg = pecaObj.numero.split("").reverse().join("")
-          } else {
-            numeroImg = pecaObj.numero
-          }
+          let numeroImg  = pecaObj.numero
           pecaImg.src = imagensPecas[numeroImg]
 
           pecaImg.addEventListener("load",()=>{
@@ -320,6 +364,8 @@
 
       function zoomOut(escala=.8){
 
+        //ERRP: quando diminuimos a escala, a atualizacao do canvas nao
+        //limpa toda a tela. Falta ajustar dimensoes usadas para a limpeza
         //let nova_largura = tabuleiro.width/
         //let nova_altura = tabuleiro.height
         //let sobra_largura = nova_largura - l_tabuleiro
